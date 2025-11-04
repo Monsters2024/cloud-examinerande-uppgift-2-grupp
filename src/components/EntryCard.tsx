@@ -16,16 +16,22 @@ export default function EntryCard({ entry }: EntryCardProps) {
 
   return (
     <div className="card" style={{ minWidth: '600px' }}>
-      <div className="mb-4">
-        <div className="text-xs text-warm-gray mb-2 tracking-wide uppercase">
-          {formattedDate}
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <div className="mb-4">
+            <div className="text-xs text-warm-gray mb-2 tracking-wide uppercase">
+              {formattedDate}
+            </div>
+            <h2 className="text-2xl font-serif text-dark-brown mb-3">{entry.title}</h2>
+          </div>
+          <p className="text-dark-brown/80 leading-relaxed whitespace-pre-wrap" style={{ width: '550px' }}>
+            {entry.content}
+          </p>
         </div>
-        <h2 className="text-2xl font-serif text-dark-brown mb-3">{entry.title}</h2>
+        <div className="ml-4">
+          <DeleteButton className='text-sm px-3 py-1 btn-primary' id={entry.id} />
+        </div>
       </div>
-      <p className="text-dark-brown/80 leading-relaxed whitespace-pre-wrap" style={{ width: '550px' }}>
-        {entry.content}
-      </p>
-      <DeleteButton id={entry.id} />
     </div>
   )
 }
