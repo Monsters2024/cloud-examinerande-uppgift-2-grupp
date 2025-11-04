@@ -1,4 +1,5 @@
 import { Entry } from '@/types/database.types'
+import DeleteButton from './DeleteButton';
 
 interface EntryCardProps {
   entry: Entry
@@ -24,9 +25,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
       <p className="text-dark-brown/80 leading-relaxed whitespace-pre-wrap" style={{ width: '550px' }}>
         {entry.content}
       </p>
-      <button className="mt-4 text-sm text-forest-green font-medium hover:underline">
-        delete entry
-      </button>
+      <DeleteButton id={entry.id} />
     </div>
   )
 }
