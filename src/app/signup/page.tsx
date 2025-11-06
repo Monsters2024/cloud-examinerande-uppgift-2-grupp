@@ -32,8 +32,8 @@ export default function SignupPage() {
     try {
       await signUp({ email, password })
       router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during signup')
+    } catch (err: Error | unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred during signup')
     } finally {
       setLoading(false)
     }

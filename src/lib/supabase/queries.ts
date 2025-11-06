@@ -24,6 +24,21 @@ export async function getEntries(): Promise<Entry[]> {
   return data || []
 }
 
+
+/**
+ * Delete an entry by ID
+ */
+export async function deleteEntry(id: string) {
+  const { data, error } = await supabase
+    .from("entries")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+  return data; 
+}
+
+
 /**
  * Create a new entry for the authenticated user
  */
@@ -53,3 +68,4 @@ export async function createEntry(entry: NewEntry): Promise<Entry> {
 
   return data
 }
+
