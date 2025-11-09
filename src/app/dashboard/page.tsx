@@ -1,19 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import EntryCard from "@/components/EntryCard";
-import { getEntries } from "@/lib/supabase/queries";
-import { getCurrentUser } from "@/lib/supabase/auth";
-import { Entry } from "@/types/database.types";
-import Link from "next/link";
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Header from '@/components/Header'
+import EntryCard from '@/components/EntryCard'
+import { getEntries } from '@/lib/supabase/queries'
+import { getCurrentUser } from '@/lib/supabase/auth'
+import { Entry } from '@/types/database.types'
+import Link from 'next/link'
+import SearchForm from '@/components/SearchForm'
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
+  const [entries, setEntries] = useState<Entry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchValue, setSearchValue] = useState("")
 
   useEffect(() => {
     async function loadData() {
@@ -25,17 +27,21 @@ export default function DashboardPage() {
           return;
         }
 
-        const data = await getEntries();
-        setEntries(data);
-      } catch (err: Error | unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load entries");
+        const data = await getEntries(searchValue)
+        setEntries(data)
+      } catch (err: Error | unknown ) {
+        setError(err instanceof Error ? err.message : 'Failed to load entries')
       } finally {
         setLoading(false);
       }
     }
 
-    loadData();
-  }, [router]);
+    loadData()
+  }, [router, searchValue])
+
+  const handleSearch = (value: string) => {
+    setSearchValue(value);
+  };
 
   if (loading) {
     return (
@@ -82,14 +88,22 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        <SearchForm onSearch={handleSearch} />
+
         {entries.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-warm-gray mb-6">
-              {"You haven't written any entries yet."}
-            </p>
-            <Link href="/new-entry">
-              <button className="btn-secondary">Write your first entry</button>
-            </Link>
+            {searchValue.length > 0 ? (
+              <>
+                <p className="text-warm-gray mb-6">Entries with "{searchValue}" not found.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-warm-gray mb-6">You haven't written any entries yet.</p>
+                <Link href="/new-entry">
+                  <button className="btn-secondary">Write your first entry</button>
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-8">
