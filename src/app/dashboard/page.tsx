@@ -80,7 +80,7 @@ export default function DashboardPage() {
 
         {entries.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-warm-gray mb-6">You haven't written any entries yet.</p>
+            <p className="text-warm-gray mb-6">You havent written any entries yet.</p>
             <Link href="/new-entry">
               <button className="btn-secondary">Write your first entry</button>
             </Link>
