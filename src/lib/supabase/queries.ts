@@ -108,9 +108,10 @@ export async function updateEntry(
     .eq("id", id)
     .eq("user_id", user.id)
     .select("*")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error("Entry not found or you do not have access");
   return data as Entry;
 }
 
