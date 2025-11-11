@@ -1,3 +1,4 @@
+import { error } from 'console'
 import { supabase } from './client'
 import { LoginCredentials, SignupCredentials } from '@/types/auth.types'
 
@@ -48,6 +49,7 @@ export async function signOut() {
  * Get the current authenticated user
  */
 export async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error} = await supabase.auth.getUser()
+   if (error) throw error
   return user
 }
