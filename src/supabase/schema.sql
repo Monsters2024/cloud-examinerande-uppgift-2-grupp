@@ -31,3 +31,29 @@ USING (auth.uid() = user_id);
 -- Create index for better query performance
 CREATE INDEX IF NOT EXISTS entries_user_id_idx ON public.entries(user_id);
 CREATE INDEX IF NOT EXISTS entries_created_at_idx ON public.entries(created_at DESC);
+
+
+-- Add updated_at column if missing
+ALTER TABLE public.entries
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
+
+-- Allow users to update their own entries
+CREATE POLICY IF NOT EXISTS "Users can update their own entries"
+  ON public.entries
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Automatically set updated_at on every update
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS trigger AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_entries_updated_at ON public.entries;
+CREATE TRIGGER trg_entries_updated_at
+BEFORE UPDATE ON public.entries
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
