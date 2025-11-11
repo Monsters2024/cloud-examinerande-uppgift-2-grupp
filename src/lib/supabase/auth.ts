@@ -1,4 +1,3 @@
-import { error } from 'console'
 import { supabase } from './client'
 import { LoginCredentials, SignupCredentials } from '@/types/auth.types'
 

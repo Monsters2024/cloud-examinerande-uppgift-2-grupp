@@ -1,4 +1,5 @@
 import { getEntries, createEntry, deleteEntry } from '@/lib/supabase/queries'
+import type { NewEntry } from '@/types/database.types'
 
 jest.mock('@/lib/supabase/client', () => ({
   supabase: {
@@ -16,12 +17,16 @@ const { supabase: mockSupabase } = jest.requireMock('@/lib/supabase/client') as 
   supabase: SupabaseMock
 }
 
+type BuilderTerminalResponse = { data: unknown; error: unknown }
+type BuilderOverrides = Partial<Record<string, jest.Mock | BuilderTerminalResponse>>
+type QueryBuilder = Record<string, jest.Mock>
+
 describe('supabase queries', () => {
   beforeEach(() => jest.clearAllMocks())
 
   // Utility to create a chained query builder mock
-  const createBuilder = (overrides: Record<string, any> = {}) => {
-    const builder: Record<string, any> = {
+  const createBuilder = (overrides: BuilderOverrides = {}): QueryBuilder => {
+    const builder: QueryBuilder = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
@@ -34,11 +39,12 @@ describe('supabase queries', () => {
     for (const key of Object.keys(overrides)) {
       const val = overrides[key]
       if (typeof val === 'function') {
-        builder[key] = val
-      } else {
-        // treat as terminal resolved response for that method
-        builder[key] = jest.fn().mockResolvedValue(val)
+        builder[key] = val as jest.Mock
+        continue
       }
+
+      // treat as terminal resolved response for that method
+      builder[key] = jest.fn().mockResolvedValue(val)
     }
 
     return builder
@@ -85,7 +91,7 @@ describe('supabase queries', () => {
   // ────────────────────────────────────────────────
   it('creates a new entry for the signed in user', async () => {
     const userId = 'user-789'
-    const entryInput = { title: 'Hello', content: 'World' }
+    const entryInput: NewEntry = { title: 'Hello', content: 'World' }
     const createdEntry = {
       id: '2',
       user_id: userId,
@@ -101,7 +107,7 @@ describe('supabase queries', () => {
     })
     mockSupabase.from.mockReturnValue(mockBuilder)
 
-    await expect(createEntry(entryInput as any)).resolves.toEqual(createdEntry)
+    await expect(createEntry(entryInput)).resolves.toEqual(createdEntry)
     expect(mockBuilder.insert).toHaveBeenCalledTimes(1)
 
     const [payload] = mockBuilder.insert.mock.calls[0]
@@ -122,7 +128,7 @@ describe('supabase queries', () => {
     })
     mockSupabase.from.mockReturnValue(mockBuilder)
 
-    await expect(createEntry({ title: 'A', content: 'B' } as any)).rejects.toThrow('Insert failed')
+    await expect(createEntry({ title: 'A', content: 'B' })).rejects.toThrow('Insert failed')
   })
 
   // ────────────────────────────────────────────────
