@@ -66,10 +66,10 @@ export async function createEntry(entry: NewEntry): Promise<Entry> {
     .insert([
       {
         user_id: user.id,
-        title,
-        content,
-        created_at: new Date().toISOString(),
-      },
+        title: entry.title,
+        content: entry.content,
+        created_at: new Date().toISOString()
+      }
     ])
     .select("*")
     .single();
