@@ -89,7 +89,7 @@ describe('supabase queries', () => {
     const createdEntry = {
       id: '2',
       user_id: userId,
-      title: `Title är: ${entryInput.title}`,
+      title: `${entryInput.title}`,
       content: entryInput.content,
       created_at: new Date().toISOString()
     }
@@ -108,7 +108,7 @@ describe('supabase queries', () => {
     expect(payload[0]).toMatchObject({
       user_id: userId,
       content: entryInput.content,
-      title: `Title är: ${entryInput.title}`
+      title: `${entryInput.title}`
     })
     expect(payload[0].created_at).toEqual(expect.any(String))
   })
