@@ -27,7 +27,7 @@ export default function DashboardPage() {
           return;
         }
 
-        const data = await getEntries(searchValue);
+        const data = await getEntries({ search: searchValue });
         setEntries(data);
       } catch (err: Error | unknown) {
         setError(err instanceof Error ? err.message : "Failed to load entries");
