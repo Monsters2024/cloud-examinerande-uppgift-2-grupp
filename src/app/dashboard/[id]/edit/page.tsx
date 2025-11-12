@@ -16,6 +16,7 @@ export default function EditEntryPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tagsInput, setTagsInput] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -29,6 +30,7 @@ export default function EditEntryPage() {
         } else {
           setTitle(entry.title);
           setContent(entry.content);
+          setTagsInput((entry.tags ?? []).join(", "));
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load entry");
@@ -47,7 +49,12 @@ export default function EditEntryPage() {
     }
     setSaving(true);
     try {
-      await updateEntry(entryId, { title, content });
+      const tags = tagsInput
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      await updateEntry(entryId, { title, content, tags });
       router.push("/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to update entry");
@@ -109,6 +116,23 @@ export default function EditEntryPage() {
               onChange={(e) => setContent(e.target.value)}
               className="input-field min-h-[400px] resize-y leading-relaxed"
               required
+              disabled={saving}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="tags"
+              className="block text-sm mb-2 text-dark-brown font-medium">
+              Tags
+            </label>
+            <input
+              id="tags"
+              type="text"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              className="input-field"
+              placeholder="e.g. journal, ideas, school"
               disabled={saving}
             />
           </div>
