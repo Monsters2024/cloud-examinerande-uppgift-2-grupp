@@ -1,10 +1,16 @@
 import { supabase } from "./client";
 import { Entry, NewEntry } from "@/types/database.types";
 
+function normalizeTags(tags?: string[]) {
+  if (!Array.isArray(tags)) return [];
+  const cleaned = tags.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  return Array.from(new Set(cleaned)); // unika
+}
+
 /**
  * Fetch all entries for the authenticated user
  */
-export async function getEntries(): Promise<Entry[]> {
+export async function getEntries(filterTag?: string): Promise<Entry[]> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -13,15 +19,19 @@ export async function getEntries(): Promise<Entry[]> {
     throw new Error("User not authenticated");
   }
 
-  const { data, error } = await supabase
+  let q = supabase
     .from("entries")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (error) {
-    throw error;
+  if (filterTag?.trim()) {
+    q = q.contains("tags", [filterTag.trim().toLowerCase()]);
   }
+
+  const { data, error } = await q;
+
+  if (error) throw error;
 
   return data || [];
 }
@@ -66,17 +76,16 @@ export async function createEntry(entry: NewEntry): Promise<Entry> {
     .insert([
       {
         user_id: user.id,
-        title: entry.title,
-        content: entry.content,
-        created_at: new Date().toISOString()
-      }
+        title,
+        content,
+        tags: normalizeTags(entry.tags),
+        created_at: new Date().toISOString(),
+      },
     ])
     .select("*")
     .single();
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return data as Entry;
 }
@@ -86,7 +95,7 @@ export async function createEntry(entry: NewEntry): Promise<Entry> {
  */
 export async function updateEntry(
   id: string,
-  patch: Partial<Pick<Entry, "title" | "content">>
+  patch: Partial<Pick<Entry, "title" | "content" | "tags">>
 ): Promise<Entry> {
   const {
     data: { user },
@@ -97,22 +106,24 @@ export async function updateEntry(
   const updates: Record<string, unknown> = {};
   if (typeof patch.title === "string") updates.title = patch.title.trim();
   if (typeof patch.content === "string") updates.content = patch.content.trim();
+  if (Array.isArray(patch.tags)) updates.tags = normalizeTags(patch.tags);
 
   if (Object.keys(updates).length === 0) {
     throw new Error("Nothing to update");
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("entries")
     .update(updates)
     .eq("id", id)
-    .eq("user_id", user.id)
-    .select("*")
-    .maybeSingle();
+    .eq("user_id", user.id);
 
   if (error) throw error;
-  if (!data) throw new Error("Entry not found or you do not have access");
-  return data as Entry;
+
+  const updatedEntry = await getEntryById(id);
+  if (!updatedEntry)
+    throw new Error("Entry not found or you do not have access");
+  return updatedEntry;
 }
 
 /**
