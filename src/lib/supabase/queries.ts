@@ -4,26 +4,30 @@ import { Entry, NewEntry } from "@/types/database.types";
 /**
  * Fetch all entries for the authenticated user
  */
-export async function getEntries(): Promise<Entry[]> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export async function getEntries(search: string): Promise<Entry[]> {
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     throw new Error("User not authenticated");
   }
 
-  const { data, error } = await supabase
-    .from("entries")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  let query = supabase
+    .from('entries')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
 
-  if (error) {
-    throw error;
+  if (search && search.trim() !== "") {
+    query = query.ilike('title', `%${search}%`);
   }
 
-  return data || [];
+  const { data, error } = await query;
+
+  if (error) {
+    throw error
+  }
+
+  return data || []
 }
 
 /**
