@@ -49,9 +49,9 @@ export async function getEntries(params?: {
     );
   }
 
-  const { data, error } = await q;
+  const { data, error } = await q.order("created_at", { ascending: false });
   if (error) throw error;
-  return data || [];
+  return data ?? [];
 }
 
 /**
