@@ -18,25 +18,36 @@ export default function DashboardPage() {
   const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const user = await getCurrentUser();
+    let cancelled = false;
 
+    // wait 300ms after user stops typing before fetching
+    const timeout = setTimeout(async () => {
+      try {
+        setLoading(true);
+
+        const user = await getCurrentUser();
         if (!user) {
           router.push("/login");
           return;
         }
 
         const data = await getEntries({ search: searchValue });
-        setEntries(data);
-      } catch (err: Error | unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load entries");
+        if (!cancelled) setEntries(data);
+      } catch (err) {
+        if (!cancelled)
+          setError(
+            err instanceof Error ? err.message : "Failed to load entries"
+          );
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    }
+    }, 1000);
 
-    loadData();
+    // cleanup when user keeps typing (cancel old timer)
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
   }, [router, searchValue]);
 
   const handleSearch = (value: string) => {
