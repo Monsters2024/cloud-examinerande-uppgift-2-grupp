@@ -32,6 +32,13 @@ USING (auth.uid() = user_id);
 CREATE INDEX IF NOT EXISTS entries_user_id_idx ON public.entries(user_id);
 CREATE INDEX IF NOT EXISTS entries_created_at_idx ON public.entries(created_at DESC);
 
+-- Add tags column to entries (TEXT array)
+ALTER TABLE public.entries
+  ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT '{}'::text[];
+
+-- Create GIN index for fast tag filtering/search
+CREATE INDEX IF NOT EXISTS entries_tags_gin_idx
+  ON public.entries USING GIN (tags);
 
 -- Add updated_at column if missing
 ALTER TABLE public.entries
