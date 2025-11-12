@@ -45,7 +45,8 @@ ALTER TABLE public.entries
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
 
 -- Allow users to update their own entries
-CREATE POLICY IF NOT EXISTS "Users can update their own entries"
+-- (CREATE POLICY does NOT support IF NOT EXISTS)
+CREATE POLICY "Users can update their own entries"
   ON public.entries
   FOR UPDATE
   USING (auth.uid() = user_id)
