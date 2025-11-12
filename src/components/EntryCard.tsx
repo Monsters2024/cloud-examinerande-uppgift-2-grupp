@@ -32,6 +32,18 @@ export default function EntryCard({ entry }: EntryCardProps) {
             style={{ width: "550px" }}>
             {entry.content}
           </p>
+
+          {entry.tags && entry.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {entry.tags.map((t) => (
+                <span
+                  key={t}
+                  className="px-2 py-1 text-xs rounded bg-amber-50 border border-amber-200 text-amber-800">
+                  #{t}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="ml-4 flex flex-col gap-2">
           <EditButton
