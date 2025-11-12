@@ -1,31 +1,33 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { signIn } from '@/lib/supabase/auth'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { signIn } from "@/lib/supabase/auth";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
     try {
-      await signIn({ email, password })
-      router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during login')
+      await signIn({ email, password });
+      router.push("/dashboard");
+    } catch (err: Error | unknown) {
+      setError(
+        err instanceof Error ? err.message : "An error occurred during login"
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-12">
@@ -38,7 +40,9 @@ export default function LoginPage() {
         <div className="card">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm mb-2 text-dark-brown">
+              <label
+                htmlFor="email"
+                className="block text-sm mb-2 text-dark-brown">
                 Email
               </label>
               <input
@@ -53,7 +57,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm mb-2 text-dark-brown">
+              <label
+                htmlFor="password"
+                className="block text-sm mb-2 text-dark-brown">
                 Password
               </label>
               <input
@@ -76,15 +82,14 @@ export default function LoginPage() {
             <button
               type="submit"
               className="btn-primary w-full"
-              disabled={loading}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
+              disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-warm-gray">
-              Don't have an account?{' '}
+              {"Don't have an account? "}
               <Link href="/signup" className="text-dark-brown hover:underline">
                 Sign up
               </Link>
@@ -93,5 +98,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

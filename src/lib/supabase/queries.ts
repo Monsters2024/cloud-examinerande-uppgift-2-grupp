@@ -1,55 +1,155 @@
-import { supabase } from './client'
-import { Entry, NewEntry } from '@/types/database.types'
+import { supabase } from "./client";
+import { Entry, NewEntry } from "@/types/database.types";
+
+function normalizeTags(tags?: string[]) {
+  if (!Array.isArray(tags)) return [];
+  const cleaned = tags.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  return Array.from(new Set(cleaned)); // unika
+}
 
 /**
  * Fetch all entries for the authenticated user
  */
-export async function getEntries(): Promise<Entry[]> {
-  const { data: { user } } = await supabase.auth.getUser()
+export async function getEntries(params?: {
+  search?: string;
+  filterTag?: string;
+}): Promise<Entry[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    throw new Error('User not authenticated')
+    throw new Error("User not authenticated");
   }
+
+  const search = params?.search?.trim();
+  const filterTag = params?.filterTag?.trim()?.toLowerCase();
+
+  let q = supabase
+    .from("entries")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (filterTag) {
+    q = q.contains("tags", [filterTag]);
+  }
+
+  if (search) {
+    // escape % and _
+    const escaped = search.replace(/[%_]/g, "\\$&");
+    const pattern = `%${escaped}%`;
+
+    q = q.or(
+      [
+        `title.ilike.${pattern}`,
+        `content.ilike.${pattern}`,
+        `tags.cs.{${search.toLowerCase()}}`,
+      ].join(",")
+    );
+  }
+
+  const { data, error } = await q.order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * Get a single entry by ID (returns null if not found)
+ */
+export async function getEntryById(id: string): Promise<Entry | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("User not authenticated");
 
   const { data, error } = await supabase
-    .from('entries')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    throw error
-  }
-
-  return data || []
+    .from("entries")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Entry) ?? null;
 }
 
 /**
  * Create a new entry for the authenticated user
  */
 export async function createEntry(entry: NewEntry): Promise<Entry> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    throw new Error('User not authenticated')
+    throw new Error("User not authenticated");
   }
 
+  const title = entry.title?.trim();
+  const content = entry.content?.trim();
+  if (!title || !content) throw new Error("Title and content are required");
+
   const { data, error } = await supabase
-    .from('entries')
+    .from("entries")
     .insert([
       {
         user_id: user.id,
-        title: `Title är: ${entry.title}`,
-        content: entry.content,
-        created_at: new Date().toISOString()
-      }
+        title,
+        content,
+        tags: normalizeTags(entry.tags),
+        created_at: new Date().toISOString(),
+      },
     ])
-    .select()
-    .single()
+    .select("*")
+    .single();
 
-  if (error) {
-    throw error
+  if (error) throw error;
+
+  return data as Entry;
+}
+
+/**
+ * Update an entry (title/content) owned by the current user
+ */
+export async function updateEntry(
+  id: string,
+  patch: Partial<Pick<Entry, "title" | "content" | "tags">>
+): Promise<Entry> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("User not authenticated");
+
+  // Build update payload, skipping undefined
+  const updates: Record<string, unknown> = {};
+  if (typeof patch.title === "string") updates.title = patch.title.trim();
+  if (typeof patch.content === "string") updates.content = patch.content.trim();
+  if (Array.isArray(patch.tags)) updates.tags = normalizeTags(patch.tags);
+
+  if (Object.keys(updates).length === 0) {
+    throw new Error("Nothing to update");
   }
 
-  return data
+  const { error } = await supabase
+    .from("entries")
+    .update(updates)
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+
+  const updatedEntry = await getEntryById(id);
+  if (!updatedEntry)
+    throw new Error("Entry not found or you do not have access");
+  return updatedEntry;
+}
+
+/**
+ * Delete an entry by ID
+ */
+export async function deleteEntry(id: string) {
+  const { data, error } = await supabase.from("entries").delete().eq("id", id);
+
+  if (error) throw error;
+  return data;
 }

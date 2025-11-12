@@ -1,41 +1,58 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Header from '@/components/Header'
-import EntryCard from '@/components/EntryCard'
-import { getEntries } from '@/lib/supabase/queries'
-import { getCurrentUser } from '@/lib/supabase/auth'
-import { Entry } from '@/types/database.types'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import EntryCard from "@/components/EntryCard";
+import { getEntries } from "@/lib/supabase/queries";
+import { getCurrentUser } from "@/lib/supabase/auth";
+import { Entry } from "@/types/database.types";
+import Link from "next/link";
+import SearchForm from "@/components/SearchForm";
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const [entries, setEntries] = useState<Entry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const user = await getCurrentUser()
+    let cancelled = false;
 
+    // wait 300ms after user stops typing before fetching
+    const timeout = setTimeout(async () => {
+      try {
+        setLoading(true);
+
+        const user = await getCurrentUser();
         if (!user) {
-          router.push('/login')
-          return
+          router.push("/login");
+          return;
         }
 
-        const data = await getEntries()
-        setEntries(data)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load entries')
+        const data = await getEntries({ search: searchValue });
+        if (!cancelled) setEntries(data);
+      } catch (err) {
+        if (!cancelled)
+          setError(
+            err instanceof Error ? err.message : "Failed to load entries"
+          );
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false);
       }
-    }
+    }, 1000);
 
-    loadData()
-  }, [router])
+    // cleanup when user keeps typing (cancel old timer)
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [router, searchValue]);
+
+  const handleSearch = (value: string) => {
+    setSearchValue(value);
+  };
 
   if (loading) {
     return (
@@ -45,7 +62,7 @@ export default function DashboardPage() {
           <p className="text-warm-gray text-center">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -56,34 +73,54 @@ export default function DashboardPage() {
           <p className="text-red-600 text-center">{error}</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen">
       <Header />
 
-      <main className="max-w-4xl mx-auto py-12" style={{ paddingLeft: '80px', paddingRight: '80px' }}>
+      <main
+        className="max-w-4xl mx-auto py-12"
+        style={{ paddingLeft: "80px", paddingRight: "80px" }}>
         <div className="flex items-center justify-between mb-12">
           <div>
-            <h2 className="text-3xl font-serif text-dark-brown mb-2">Your Entries</h2>
+            <h2 className="text-3xl font-serif text-dark-brown mb-2">
+              Your Entries
+            </h2>
             <p className="text-warm-gray text-sm">
-              {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+              {entries.length} {entries.length === 1 ? "entry" : "entries"}
             </p>
           </div>
           <Link href="/new-entry">
-            <button className="btn-primary" style={{ minWidth: '160px' }}>
+            <button className="btn-primary" style={{ minWidth: "160px" }}>
               New Entry
             </button>
           </Link>
         </div>
 
+        <SearchForm onSearch={handleSearch} />
+
         {entries.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-warm-gray mb-6">You haven't written any entries yet.</p>
-            <Link href="/new-entry">
-              <button className="btn-secondary">Write your first entry</button>
-            </Link>
+            {searchValue.length > 0 ? (
+              <>
+                <p className="text-warm-gray mb-6">
+                  Entries with #{searchValue} not found.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-warm-gray mb-6">
+                  {"You haven't written any entries yet."}
+                </p>
+                <Link href="/new-entry">
+                  <button className="btn-secondary">
+                    Write your first entry
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-8">
@@ -94,5 +131,5 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

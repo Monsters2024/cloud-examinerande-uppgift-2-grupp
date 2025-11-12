@@ -1,68 +1,79 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Header from "@/components/Header";
-import { createEntry } from "@/lib/supabase/queries";
+import { getEntryById, updateEntry } from "@/lib/supabase/queries";
 import { getCurrentUser } from "@/lib/supabase/auth";
 
-export default function NewEntryPage() {
+export default function EditEntryPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const entryId = params.id;
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [tagsInput, setTagsInput] = useState("");
 
   useEffect(() => {
-    async function checkAuth() {
+    (async () => {
       const user = await getCurrentUser();
-      if (!user) {
-        router.push("/login");
-      }
-    }
+      if (!user) return router.push("/login");
 
-    checkAuth();
-  }, [router]);
+      try {
+        const entry = await getEntryById(entryId);
+        if (!entry) {
+          setError("Entry not found");
+        } else {
+          setTitle(entry.title);
+          setContent(entry.content);
+          setTagsInput((entry.tags ?? []).join(", "));
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load entry");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [entryId, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     if (!title.trim() || !content.trim()) {
       setError("Title and content are required");
       return;
     }
-
-    setLoading(true);
-
+    setSaving(true);
     try {
       const tags = tagsInput
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean);
 
-      await createEntry({ title, content, tags });
+      await updateEntry(entryId, { title, content, tags });
       router.push("/dashboard");
-    } catch (err: Error | unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create entry");
-      setLoading(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update entry");
+      setSaving(false);
     }
   };
 
-  const displayDate = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="max-w-3xl mx-auto px-6 py-12">Loading…</main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
       <Header />
-
       <main className="max-w-3xl mx-auto px-6 py-12">
         <div className="mb-8">
           <button
@@ -71,9 +82,8 @@ export default function NewEntryPage() {
             ← Back to entries
           </button>
           <h1 className="text-4xl font-serif text-dark-brown mb-2">
-            New Entry
+            Edit Entry
           </h1>
-          <p className="text-warm-gray text-sm">{displayDate}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -89,9 +99,8 @@ export default function NewEntryPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="input-field text-xl font-serif"
-              placeholder="Give your entry a title..."
               required
-              disabled={loading}
+              disabled={saving}
             />
           </div>
 
@@ -106,9 +115,8 @@ export default function NewEntryPage() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="input-field min-h-[400px] resize-y leading-relaxed"
-              placeholder="Write your thoughts..."
               required
-              disabled={loading}
+              disabled={saving}
             />
           </div>
 
@@ -125,7 +133,7 @@ export default function NewEntryPage() {
               onChange={(e) => setTagsInput(e.target.value)}
               className="input-field"
               placeholder="e.g. journal, ideas, school"
-              disabled={loading}
+              disabled={saving}
             />
           </div>
 
@@ -136,14 +144,14 @@ export default function NewEntryPage() {
           )}
 
           <div className="flex gap-4">
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Saving..." : "Save Entry"}
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
               className="btn-secondary"
-              disabled={loading}>
+              disabled={saving}>
               Cancel
             </button>
           </div>
