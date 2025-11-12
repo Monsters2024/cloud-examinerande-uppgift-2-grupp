@@ -1,36 +1,6 @@
- Ett repo där ni bestämt och jobbat med:
-- En bra branching strategy (skriv i readme om detta)
-vi använde oss av BUG/thisdoesnotwork eller FEATURE/KNAPPSOMRULLLAR  där vi påpekar vad vi ill implementera som T.EX.  BUG FEATURE ETC samt issuen som vi fixar det fungerar bra för att vi vet vad för issue branch det är  och vad som görs i branchen 
-- Tydlig commit-historik (skriv i readme om detta)
-vi hade väldigt tydliga commit medelanden och jobbade varsamt med våra commits 
-
-- Issues och PRs (med code-reviews av andra i teamet (och kanske AI))
-för att få igenom sin kod behövde man minst en person att godkänna den och reviewa via discord  och sedan Får man en LGTM = LOOOKS GOOD TOO ME  och då kan man merga så vi gick igenom vad person gjorde och sedan mergade ihop det när det såg bra ut 
-
-- Jobba i Github Projects eler Jira (kan ju nämna något om det här i readmen och när du visar upp detta sen)
-vi använde oss av github projects där vi gjorde issues med bugs eller features och sedan plockade man en och jobbade 
-
-
-- Alltid bra att veta vad som är AI-genererat så skriv en rad om det i readmen också, hur ni använt AI för tester etc.
-vi använde ai väldigt mycket, för att generera tester osv. vi försökte granska det vi satte in så mycket som möjligt men när det närmar sig deadline så pushar man upp mer kod och mindre granskning
-
-- Github Actions workflows (så vi kan jobba vidare med er CI/CD pipeline sen)
-- Förklara CI/CD-pipelinen noggrannt i readmen, alltså varför du/ni gör vissa grejer etc. (så vi fattar)
-vi kör ci cd för att ha en effektiv och fungerade miljö som rullar på utan problem och att problem fångas innan det mergas ! 
-vi använde lint för det är standard och för att det ska fungera väl 
-samt var pipelinen tvungen och passera alla tester som fanns för att säkerställa en fungerade miljö. 
-
-- Motivera val av mer avancerad CI/CD
-vi använde lint / test för att skapa en fungerade avancerad miljö
-
-
-
-
-
 # Journal App - Student Assignment Starter
 
 A minimalist journaling application built with Next.js 14, TypeScript, Tailwind CSS, and Supabase. This project serves as a starting point for students to practice debugging, adding features, and improving existing code.
-
 
 ## Tech Stack
 
@@ -82,7 +52,6 @@ This app follows a minimalist, editorial design approach:
 - **Layout:** Clean, centered layouts with maximum content width
 - **Interaction:** Subtle hover states and transitions
 
-
 ## Resources
 
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -91,3 +60,28 @@ This app follows a minimalist, editorial design approach:
 - [TypeScript Documentation](https://www.typescriptlang.org/docs)
 
 ## Fyll på med era reflektioner nedan!
+
+### Ett repo där ni bestämt och jobbat med:
+
+- En bra branching strategy (skriv i readme om detta)
+  vi använde oss av BUG/thisdoesnotwork eller FEATURE/KNAPPSOMRULLLAR där vi påpekar vad vi ill implementera som T.EX. BUG FEATURE ETC samt issuen som vi fixar det fungerar bra för att vi vet vad för issue branch det är och vad som görs i branchen
+- Tydlig commit-historik (skriv i readme om detta)
+  vi hade väldigt tydliga commit medelanden och jobbade varsamt med våra commits
+
+- Issues och PRs (med code-reviews av andra i teamet (och kanske AI))
+  för att få igenom sin kod behövde man minst en person att godkänna den och reviewa via discord och sedan Får man en LGTM = LOOOKS GOOD TOO ME och då kan man merga så vi gick igenom vad person gjorde och sedan mergade ihop det när det såg bra ut
+
+- Jobba i Github Projects eler Jira (kan ju nämna något om det här i readmen och när du visar upp detta sen)
+  vi använde oss av github projects där vi gjorde issues med bugs eller features och sedan plockade man en och jobbade
+
+- Alltid bra att veta vad som är AI-genererat så skriv en rad om det i readmen också, hur ni använt AI för tester etc.
+  vi använde ai väldigt mycket, för att generera tester osv. vi försökte granska det vi satte in så mycket som möjligt men när det närmar sig deadline så pushar man upp mer kod och mindre granskning
+
+- Github Actions workflows (så vi kan jobba vidare med er CI/CD pipeline sen)
+- Förklara CI/CD-pipelinen noggrannt i readmen, alltså varför du/ni gör vissa grejer etc. (så vi fattar)
+  vi kör ci cd för att ha en effektiv och fungerade miljö som rullar på utan problem och att problem fångas innan det mergas !
+  vi använde lint för det är standard och för att det ska fungera väl
+  samt var pipelinen tvungen och passera alla tester som fanns för att säkerställa en fungerade miljö.
+
+- Motivera val av mer avancerad CI/CD
+  vi använde lint / test för att skapa en fungerade avancerad miljö
