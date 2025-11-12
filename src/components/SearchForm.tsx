@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { type } from "../../.next/dev/types/routes";
 
 interface Props {
   onSearch: (value: string) => void;
@@ -26,7 +25,11 @@ export default function SearchForm({ onSearch }: Props) {
         placeholder="Searching..."
         className="input-field"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          const v = e.target.value;
+          setValue(v);
+          onSearch(v);
+        }}
       />
       <button
         className="btn-primary cursor-pointer"
