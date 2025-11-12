@@ -10,10 +10,8 @@ function normalizeTags(tags?: string[]) {
 /**
  * Fetch all entries for the authenticated user
  */
-export async function getEntries(filterTag?: string): Promise<Entry[]> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export async function getEntries(search: string): Promise<Entry[]> {
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     throw new Error("User not authenticated");
