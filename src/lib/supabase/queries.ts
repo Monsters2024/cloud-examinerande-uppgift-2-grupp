@@ -10,7 +10,10 @@ function normalizeTags(tags?: string[]) {
 /**
  * Fetch all entries for the authenticated user
  */
-export async function getEntries(filterTag: string): Promise<Entry[]> {
+export async function getEntries(params?: {
+  search?: string;
+  filterTag?: string;
+}): Promise<Entry[]> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -19,20 +22,35 @@ export async function getEntries(filterTag: string): Promise<Entry[]> {
     throw new Error("User not authenticated");
   }
 
+  const search = params?.search?.trim();
+  const filterTag = params?.filterTag?.trim()?.toLowerCase();
+
   let q = supabase
     .from("entries")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (filterTag?.trim()) {
-    q = q.contains("tags", [filterTag.trim().toLowerCase()]);
+  if (filterTag) {
+    q = q.contains("tags", [filterTag]);
+  }
+
+  if (search) {
+    // escape % and _
+    const escaped = search.replace(/[%_]/g, "\\$&");
+    const pattern = `%${escaped}%`;
+
+    q = q.or(
+      [
+        `title.ilike.${pattern}`,
+        `content.ilike.${pattern}`,
+        `tags.cs.{${search.toLowerCase()}}`,
+      ].join(",")
+    );
   }
 
   const { data, error } = await q;
-
   if (error) throw error;
-
   return data || [];
 }
 
