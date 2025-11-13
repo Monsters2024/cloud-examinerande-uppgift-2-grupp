@@ -1,0 +1,25 @@
+name: CI
+
+on: 
+  push:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Klona repot så att det finns i vår Github Actions runner
+      - uses: actions/checkout@v4
+      
+      # installera node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # installera dependcies från package-lock.json
+      - run: npm ci
+
+      # kör linter
+      - run: npm run lint
+
+      # kör våra otroligt bra tester!
+      # - run: npm test
