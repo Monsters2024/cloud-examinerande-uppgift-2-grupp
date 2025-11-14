@@ -1,3 +1,6 @@
+Test USER : EMAIL : test123@hotmail.com
+TEST USER :PASSWORD : 12345
+DEPLOYED VERCEL LÄNK : https://liveversion-git-main-chimpy7s-projects.vercel.app/login
 # Sammanfattning om Projektet
 
 Vi skapade branches utifrån det vi ville implementera. Vi hade som regel att döpa varje branch till "BUG/" eller "FEATURE/", plus i följd med vad som skulle implementeras, för att veta vilken issue det gäller. Om det är en bugfix, då börjar alla branch-namn med BUG/, och om det var en ny funktion som skulle implementeras, då döptes branches med FEATURE/. En branch där man implementerar en ny funktion för att t.ex. filtrera och sortera, skulle kunna heta "FEATURE/filterAndSort".
